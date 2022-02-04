@@ -14,8 +14,8 @@ const getHashrate = async (ssh: NodeSSH) => {
       const raws = result.split('), ')
       const rawsDiffShares = raws[0].split(' (')
 
-      const diff = rawsDiffShares[0].replace('accepted: ', '')
-      const shares = rawsDiffShares[1].replace('diff ', '')
+      const shares = rawsDiffShares[0].replace('accepted: ', '').split(' ')[2]
+      const diff = rawsDiffShares[1].replace('diff ', '')
 
       const hashrate = replace((raws[1] || ''), ' \x1B[32myes!\x1B[0m', '')
       return {
