@@ -1,12 +1,31 @@
 import PouchDB from "pouchdb";
 import Setting from "../model/setting";
-import stbDb, {settingDb, settingFields} from "../db";
-import {set} from "lodash";
+import {settingDb, settingFields} from "../db";
 
-export const getConfig = (name: string): Promise<PouchDB.Find.FindResponse<Setting>> => settingDb.find({
-    selector: {name: {$eq: name}},
-    fields: settingFields
-})
+export const getConfig = async (name: string): Promise<Setting> => {
+    const result = await settingDb.find({
+        selector: {name: name},
+        fields: settingFields
+    })
+
+    if (result?.docs?.length > 0) {
+        return result.docs[0]
+    }
+    return null
+}
+
+export const getConfigValue = async (name: string, defaultValue: string = ''): Promise<string> => {
+    const result: PouchDB.Find.FindResponse<Setting> = await settingDb.find({
+        selector: {name: name},
+        fields: settingFields
+    })
+
+    if (result?.docs?.length > 0) {
+        const data: Setting = result.docs[0]
+        return data.value || defaultValue
+    }
+    return defaultValue
+}
 
 export const getAllConfig = (): Promise<PouchDB.Find.FindResponse<Setting>> => settingDb.find({
     selector: {},

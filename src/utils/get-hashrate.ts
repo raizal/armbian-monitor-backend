@@ -4,7 +4,7 @@ import { NodeSSH } from "node-ssh";
 
 const getHashrate = async (ssh: NodeSSH) => {
   try {
-    const miningLog = await run(ssh, 'tail /root/mining.log')
+    const miningLog = await run(ssh, 'tail -n 5 /root/mining.log')
     const hashrateLog = miningLog.split('\n')
     const result = hashrateLog.slice().reverse().find((log) => {
       const logRaws = log.split(', ')

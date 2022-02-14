@@ -1,6 +1,7 @@
 import connect from "./connect.js";
 import getSTBData, {getSTBMinimumData} from "./get-stb-data.js";
 import Stb from "../model/stb";
+import {saveStb} from "../repository/stb";
 
 export const fetchSingleStb = async ({
   ip = '192.168.1.1',
@@ -13,6 +14,11 @@ export const fetchSingleStb = async ({
 
     ssh.dispose()
     if (dataStb) {
+      saveStb({
+        ...dataStb,
+        ip
+      })
+
       return {
         ...dataStb,
         ip,
@@ -54,15 +60,17 @@ const fetchStbNonBlocking = async ({
           if (onFound) onFound(result)
         }
       } catch (e) {
-        if (e.level !== 'client-timeout') console.error(`${ip} : `, e)
+        console.error(`${ip} : `, e)
       }
       resolve()
     }))
     if (promises.length === 25) {
+      console.log(`SCANNING ${promises.length} ip`)
       await Promise.all(promises)
       promises.splice(0, promises.length)
     }
   }
+  console.log(`SCANNING ${promises.length} ip`)
   await Promise.all(promises)
   return stb
 }

@@ -5,13 +5,13 @@ import getNetworkDeviceStatus from "./get-net-devices.js";
 import fetchTemp from "./get-device-temp.js";
 import getOS from "./get-osname.js";
 import getHashrate from "./get-hashrate.js";
-import getWorkername from "./get-workername.js";
-import {isPm2Exist} from "./install-utils/install-pm2.js";
-import {isNodeExist} from "./install-utils/install-node.js";
-import {isMinerExist} from "./install-utils/install-miner.js";
+import {getMinerStatus} from "./install-utils/install-miner.js";
 import {isSkywireExist} from "./install-utils/install-skywire.js";
 import Stb from "../model/stb";
 import {NodeSSH} from "node-ssh";
+import {getNodeStatus} from "./install-utils/install-node";
+import {getPm2Status} from "./install-utils/install-pm2";
+import getMinerScript from "./get-miner-script";
 
 const getSTBData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
   try {
@@ -36,17 +36,19 @@ const getSTBData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
 
     const { hashrate, diff, shares } = await getHashrate(ssh)
 
-    const workerName = await getWorkername(ssh)
+    // const workerName = await getWorkername(ssh)
 
-    const nodeStatus = await isNodeExist(ssh)
+    const nodeStatus = await getNodeStatus(ssh)
 
-    const pm2Status = await isPm2Exist(ssh)
+    const pm2Status = await getPm2Status(ssh)
 
-    const ccminerStatus = await isMinerExist(ssh)
+    const ccminerStatus = await getMinerStatus(ssh)
 
     const skywireStatus = await isSkywireExist(ssh)
 
-    return {
+    const minerScript = await getMinerScript(ssh)
+
+    const result = {
       hostname: replace(hostname, 'stb', ''),
       name: hostname,
       mac: (macAddresses || []).filter(mac => mac !== '00:00:00:00:00:00'),
@@ -56,12 +58,16 @@ const getSTBData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
       hashrate,
       diff,
       shares,
-      workerName: workerName || 'n/a',
+      workerName: 'n/a',
       nodeStatus,
       pm2Status,
       ccminerStatus,
-      skywireStatus
+      skywireStatus,
+      minerScript,
+      _id: hostname
     }
+
+    return result
   } catch (e) {
     console.error(e)
   }
@@ -73,18 +79,30 @@ export const getSTBMinimumData = async (ssh: NodeSSH, netDevice = 'wlan0'): Prom
 
     const temp = await fetchTemp(ssh)
 
+    const hostname = await getHostname(ssh)
+
     const { hashrate, diff, shares } = await getHashrate(ssh)
 
-    const ccminerStatus = await isMinerExist(ssh)
+    const ccminerStatus = await getMinerStatus(ssh)
 
     const skywireStatus = await isSkywireExist(ssh)
 
-    return {
+    const nodeStatus = await getNodeStatus(ssh)
+
+    const pm2Status = await getPm2Status(ssh)
+    const minerScript = await getMinerScript(ssh)
+
+    const result = {
+      _id: hostname,
       temp,
       hashrate, diff, shares,
       ccminerStatus,
-      skywireStatus
+      skywireStatus,
+      nodeStatus,
+      pm2Status,
+      minerScript
     }
+    return result
   } catch (e) {
     console.error(e)
   }

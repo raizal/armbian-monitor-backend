@@ -1,7 +1,22 @@
-import { getAllStb } from "../repository/stb";
+import {setIntervalAsync, clearIntervalAsync, SetIntervalAsyncTimer} from 'set-interval-async/dynamic'
+
+import {getAllStb, getStb} from "../repository/stb";
 import {fetchSingleStb} from "../utils/get-stb-non-blocking.js";
-import {Server, Socket} from "socket.io";
-import stbDb from "../db";
+import {Socket} from "socket.io";
+import {emit} from "../utils/emit-log";
+import {getConfigValue} from "../repository/setting";
+
+const sendSingleDeviceUpdate = async (client: Socket, id: string) => {
+  const stbData = await getStb(id)
+  const data = await fetchSingleStb({ ip: stbData.ip })
+  console.log('SEND STB DATA')
+  if (data) {
+    client.emit('web-client-receive', {
+      action: 'UPDATE SINGLE',
+      result: data
+    })
+  }
+}
 
 const sendDeviceUpdate = async (client: Socket) => {
   const data = await getAllStb()
@@ -12,49 +27,49 @@ const sendDeviceUpdate = async (client: Socket) => {
   })
 }
 
-let intervalID: NodeJS.Timer = null
+let intervalID: SetIntervalAsyncTimer = null
 
-export const periodicFetch = (io: Server) => {
-  if (intervalID) {
-    clearInterval(intervalID)
-  }
-  intervalID = setInterval(async () => {
-    const data = await getAllStb()
-    if (data && data.docs && data.docs.length > 0) {
-      for (const {ip, _id} of data.docs) {
-        fetchSingleStb({ ip, minimum: true })
-          .then(result => {
-            if (result) {
-              result._id = _id
+export const periodicFetch = () => {
+  getConfigValue('refreshInterval', '2')
+      .then(async (value: string) => {
+        await stopPeriodicFetch()
+        intervalID = setIntervalAsync(async () => {
 
-              stbDb.get(_id)
-                  .then(fromDb => {
-                    stbDb.put({
-                      ...fromDb,
-                      ...result
-                    })
-                  })
-                  .catch(e => {
-                    console.log(e.status)
-                  })
+          const maxRun = 15
+          const promises = []
 
-              try {
-                io.sockets.emit('web-client-receive', {
-                  action: 'UPDATE SINGLE',
-                  result
-                })
-              } catch (e) {
-                console.log(e)
+          const data = await getAllStb()
+          if (data && data.docs && data.docs.length > 0) {
+            for (const {ip, _id, ...etc} of data.docs) {
+              promises.push(fetchSingleStb({ ip, minimum: false })
+                  .then(result => {
+                    if (result) {
+                      result._id = _id
+                      try {
+                        emit('UPDATE SINGLE', result)
+                      } catch (e) {
+                        console.log(e)
+                      }
+                    }
+                  }))
+              if (promises.length >= maxRun) {
+                console.log(`UPDATE ${promises.length}`)
+                await Promise.all(promises)
+                promises.splice(0, promises.length)
               }
             }
-          })
-      }
-    }
-  }, 1200)
+            console.log(`UPDATE ${promises.length}`)
+            await Promise.all(promises)
+          }
+
+        }, parseInt(value) * 1000)
+      })
 }
 
-export const stopPeriodicFetch = () => {
-  clearInterval(intervalID)
+export const stopPeriodicFetch = async () => {
+  if (intervalID) {
+    await clearIntervalAsync(intervalID)
+  }
 }
 
 export default sendDeviceUpdate

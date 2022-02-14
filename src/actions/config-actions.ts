@@ -7,6 +7,7 @@ export const loadConfig = (client: Socket) => {
         .then(result => {
             if (result) {
                 const configs = result.docs
+                console.log('LOAD CONFIGS : ', configs)
                 client.emit('web-client-receive', {
                     action: 'LOAD SETTING',
                     result: configs

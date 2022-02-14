@@ -1,0 +1,1 @@
+export const INSTALL_LOG = "INSTALL LOG"

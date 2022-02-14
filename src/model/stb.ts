@@ -18,6 +18,7 @@ export default interface Stb {
     diff?: string | 'n/a',
     shares?: string | 'n/a',
     workerName?: string | 'n/a',
+    minerScript?: string,
     nodeStatus?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
     pm2Status?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
     ccminerStatus?: InstallationStatus | InstallationStatus.NOT_INSTALLED,

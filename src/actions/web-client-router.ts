@@ -1,6 +1,8 @@
 import scans from "./scans";
 import {Socket} from "socket.io";
 import {loadConfig, saveConfig} from "./config-actions";
+import installs from "./installs";
+import terminalHandler from "./terminal";
 
 const actions = (socket: Socket) => (message: any) => {
     const client = socket
@@ -9,13 +11,20 @@ const actions = (socket: Socket) => (message: any) => {
 
     switch (action) {
         case 'SCAN':
-            scans(client, action, payload)
+            scans()
             break
         case 'SAVE SETTING':
             saveConfig(client, payload)
             break
         case 'LOAD SETTING':
             loadConfig(client)
+            break
+        case 'SSH CONNECT':
+        case 'SSH CLOSE':
+            terminalHandler(client, action, payload)
+            break
+        default:
+            installs(client, action, payload)
             break
     }
 }
