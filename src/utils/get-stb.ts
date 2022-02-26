@@ -20,7 +20,7 @@ const fetchStb = async (segments = '192.168.1', start = 1, end = 254, netDevice 
             ip
           })
         }
-        ssh.dispose()
+        //ssh.dispose()
       } catch (e) {
         // console.error(`${ip} : `, e.message)
       }

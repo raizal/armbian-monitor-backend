@@ -45,25 +45,30 @@ export const saveConfigs = (settings: Setting[]) => {
     }
 }
 
-export const saveConfig = (name: string, value: string) => {
-    settingDb.get<Setting>(name)
-        .then((result) => {
-            settingDb.put({
-                ...result,
-                name,
-                value,
-                lastUpdate: new Date().getTime(),
-            })
-        })
-        .catch(e => {
-            console.log(e.status)
-            if (e.status === 404) {
+export const saveConfig = async (name: string, value: string) => {
+    return new Promise<void>(resolve => {
+        settingDb.get<Setting>(name)
+            .then((result) => {
                 settingDb.put({
+                    ...result,
                     name,
                     value,
                     lastUpdate: new Date().getTime(),
-                    _id: name
                 })
-            }
-        })
+            })
+            .catch(e => {
+                console.log(e.status)
+                if (e.status === 404) {
+                    settingDb.put({
+                        name,
+                        value,
+                        lastUpdate: new Date().getTime(),
+                        _id: name
+                    })
+                }
+            })
+            .finally(() => {
+                resolve()
+            })
+    })
 }

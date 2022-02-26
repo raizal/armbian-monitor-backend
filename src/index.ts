@@ -2,15 +2,20 @@ import 'dotenv/config'
 import express from 'express';
 import { createServer } from 'http';
 import {Server, Socket} from 'socket.io';
-import sendDeviceUpdate, {periodicFetch} from "./actions/device-update.js";
+import sendDeviceUpdate, {initializeQueue} from "./actions/device-update.js";
 import actions from './actions/web-client-router'
 import {loadConfig} from "./actions/config-actions";
 import * as path from "path";
+import {resume} from "./repository/updates-queue";
+import connect from "./utils/connect";
+import run from "./utils/run";
+import getMinerScript from "./utils/get-miner-script";
 
 //Error handler
 process.on('uncaughtException', (exception) => {
   // handle or ignore error
   console.error(exception);
+  resume()
 });
 
 const app = express()
@@ -21,6 +26,7 @@ export const io = new Server(httpServer, {
   }
 });
 
+app.use(express.static(path.join(__dirname, '../client')));
 app.get('/', (get, res) => {
   res.sendFile(path.join(__dirname, "../client", "index.html"));
 })
@@ -38,7 +44,6 @@ io.on("connection", (socket: Socket) => {
     console.log("Web Client Connected : ", client.id)
     loadConfig(client)
     await sendDeviceUpdate(client)
-    periodicFetch()
   })
 
   socket.on('web-client-send', actions(socket))
@@ -46,5 +51,12 @@ io.on("connection", (socket: Socket) => {
 });
 
 httpServer.listen(80);
-periodicFetch()
+initializeQueue()
+//
+// const playground = async () => {
+//   const ssh = await connect('192.168.1.212')
+//   console.log('192.168.1.201 : ', ssh.isConnected() && 'connected DONG!!!')
+//   console.log(await run(ssh, 'cat /etc/hostname'))
+// }
+// playground()
 // console.log('RUN ON http://localhost:3000')

@@ -9,99 +9,66 @@ import {getMinerStatus} from "./install-utils/install-miner.js";
 import {isSkywireExist} from "./install-utils/install-skywire.js";
 import Stb from "../model/stb";
 import {NodeSSH} from "node-ssh";
-import {getNodeStatus} from "./install-utils/install-node";
-import {getPm2Status} from "./install-utils/install-pm2";
 import getMinerScript from "./get-miner-script";
+import getCpuLoad from "./get-cpu-load";
+import getIp from "./get-ip";
+
+const getMac = async (ssh: NodeSSH, netDev: string[]) => {
+  const macRequestPromises: Array<Promise<void>> = []
+
+  const macAddresses: Array<string> = []
+
+  netDev.forEach(net => {
+    macRequestPromises.push(new Promise(async (resolve) => {
+      macAddresses.push(await getMacAddress(ssh, net))
+      resolve()
+    }))
+  })
+
+  await Promise.all(macRequestPromises)
+  return macAddresses
+}
 
 const getSTBData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
   try {
     const hostname = await getHostname(ssh)
     const os = await getOS(ssh)
-    const netDev = await getNetworkDeviceStatus(ssh)
 
-    const macRequestPromises: Array<Promise<void>> = []
-
-    const macAddresses: Array<string> = []
-
-    netDev.forEach(net => {
-      macRequestPromises.push(new Promise(async (resolve) => {
-        macAddresses.push(await getMacAddress(ssh, net))
-        resolve()
-      }))
-    })
-
-    await Promise.all(macRequestPromises)
+    const netInfo = await getIp(ssh)
 
     const temp = await fetchTemp(ssh)
 
-    const { hashrate, diff, shares } = await getHashrate(ssh)
-
-    // const workerName = await getWorkername(ssh)
-
-    const nodeStatus = await getNodeStatus(ssh)
-
-    const pm2Status = await getPm2Status(ssh)
+    const { hashrate, diff, shares, lastUpdate } = await getHashrate(ssh)
 
     const ccminerStatus = await getMinerStatus(ssh)
 
     const skywireStatus = await isSkywireExist(ssh)
 
     const minerScript = await getMinerScript(ssh)
+    const cpuLoad = await getCpuLoad(ssh)
+
+    const lastRequest = new Date().getTime()
 
     const result = {
-      hostname: replace(hostname, 'stb', ''),
+      hostname,
       name: hostname,
-      mac: (macAddresses || []).filter(mac => mac !== '00:00:00:00:00:00'),
+      mac: netInfo.map(net => net.mac),
+      ips: netInfo.map(net => net.ip).filter(ip => ip && ip.length > 0),
       os,
-      netDev,
+      netDev: netInfo.map(net => net.dev),
       temp,
       hashrate,
       diff,
       shares,
       workerName: 'n/a',
-      nodeStatus,
-      pm2Status,
       ccminerStatus,
       skywireStatus,
+      lastUpdate,
+      lastRequest,
+      cpuLoad,
       minerScript,
-      _id: hostname
     }
 
-    return result
-  } catch (e) {
-    console.error(e)
-  }
-  return null
-}
-
-export const getSTBMinimumData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb> => {
-  try {
-
-    const temp = await fetchTemp(ssh)
-
-    const hostname = await getHostname(ssh)
-
-    const { hashrate, diff, shares } = await getHashrate(ssh)
-
-    const ccminerStatus = await getMinerStatus(ssh)
-
-    const skywireStatus = await isSkywireExist(ssh)
-
-    const nodeStatus = await getNodeStatus(ssh)
-
-    const pm2Status = await getPm2Status(ssh)
-    const minerScript = await getMinerScript(ssh)
-
-    const result = {
-      _id: hostname,
-      temp,
-      hashrate, diff, shares,
-      ccminerStatus,
-      skywireStatus,
-      nodeStatus,
-      pm2Status,
-      minerScript
-    }
     return result
   } catch (e) {
     console.error(e)

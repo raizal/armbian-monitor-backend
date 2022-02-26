@@ -1,20 +1,18 @@
 import connect from "./connect.js";
-import getSTBData, {getSTBMinimumData} from "./get-stb-data.js";
+import getSTBData from "./get-stb-data.js";
 import Stb from "../model/stb";
 import {saveStb} from "../repository/stb";
 
 export const fetchSingleStb = async ({
   ip = '192.168.1.1',
-  netDevice = '*',
-  minimum = false
+  netDevice = '*'
 }): Promise<Stb> => {
   try {
     const ssh = await connect(ip)
-    const dataStb = await (minimum? getSTBMinimumData(ssh, netDevice) : getSTBData(ssh, netDevice))
-
-    ssh.dispose()
+    const dataStb = await getSTBData(ssh, netDevice)
+    //ssh.dispose()
     if (dataStb) {
-      saveStb({
+      const dbsave = await saveStb({
         ...dataStb,
         ip
       })
@@ -22,10 +20,11 @@ export const fetchSingleStb = async ({
       return {
         ...dataStb,
         ip,
-        lastUpdate: new Date().getTime()
+        _id: dbsave.id
       }
     }
   } catch (e) {
+    console.error(`FETCH STB ERROR ${ip} : `, e.level)
     if (e.level !== 'client-timeout') console.error(`${ip} : `, e)
   }
   return null
@@ -39,15 +38,14 @@ export interface FetchStbArgs {
   onFound?: (stb: Stb | null) => void
 }
 
-const fetchStbNonBlocking = async ({
+const fetchStbNonBlocking = ({
   segments = '192.168.1',
   start = 1,
   end = 254,
   netDevice = '*',
   onFound
-}: FetchStbArgs) => {
-  const stb: Stb[] = []
-  const promises = []
+}: FetchStbArgs): Promise<void>[] => {
+  const promises: Promise<void>[] = []
 
   for (let i = start; i <= end; i++) {
     const ip = `${segments}.${i}`
@@ -56,7 +54,6 @@ const fetchStbNonBlocking = async ({
       try {
         const result = await fetchSingleStb({ ip, netDevice })
         if (result) {
-          stb.push(result)
           if (onFound) onFound(result)
         }
       } catch (e) {
@@ -64,15 +61,8 @@ const fetchStbNonBlocking = async ({
       }
       resolve()
     }))
-    if (promises.length === 25) {
-      console.log(`SCANNING ${promises.length} ip`)
-      await Promise.all(promises)
-      promises.splice(0, promises.length)
-    }
   }
-  console.log(`SCANNING ${promises.length} ip`)
-  await Promise.all(promises)
-  return stb
+  return promises
 }
 
 export default fetchStbNonBlocking

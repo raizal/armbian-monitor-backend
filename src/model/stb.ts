@@ -19,9 +19,8 @@ export default interface Stb {
     shares?: string | 'n/a',
     workerName?: string | 'n/a',
     minerScript?: string,
-    nodeStatus?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
-    pm2Status?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
     ccminerStatus?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
     skywireStatus?: InstallationStatus | InstallationStatus.NOT_INSTALLED,
-    lastUpdate?: number
+    lastUpdate?: string,
+    lastRequest?: number
 }

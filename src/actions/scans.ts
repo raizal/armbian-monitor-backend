@@ -1,36 +1,42 @@
-import fetchStb from "../utils/get-stb-non-blocking.js";
+import fetchStb, {fetchSingleStb} from "../utils/get-stb-non-blocking.js";
 import {emit} from "../utils/emit-log";
 import {getConfig} from "../repository/setting";
-import {periodicFetch, stopPeriodicFetch} from "./device-update";
+import {initializeQueue, stopPeriodicFetch} from "./device-update";
+import {add, PRIORITY_SCANNING} from "../repository/updates-queue";
 
 export default async () => {
-  stopPeriodicFetch()
   try {
     const subnetConfig = await getConfig('segments')
     const subnets = subnetConfig.value.split(',')
-    const promises: Promise<void>[] = []
 
-    emit('SCANNING', {
-    })
+    // emit('SCANNING', {
+    // })
 
     // in case more than 1 subnet, make it processed one by one
     for (const subnet of subnets) {
       console.log('finding stb : ', subnet)
-      await fetchStb({
-        segments: subnet.trim(),
-        onFound: data => {
-          console.log('found stb : ', data.ip)
-          emit('UPDATE SINGLE', data)
-        }
-      })
+      const segments = subnet.trim(), start = 1, end = 254, netDevice = '*'
+      for (let i = start; i <= end; i++) {
+        const ip = `${segments}.${i}`
+        add(new Promise<void>(async (resolve) => {
+          try {
+            const result = await fetchSingleStb({ ip, netDevice })
+            if (result) {
+              emit('UPDATE SINGLE', result)
+            }
+            console.log(`check ${ip} : `, result ? 'FOUND' : 'X')
+          } catch (e) {
+            console.error(`${ip} : `, e)
+          } finally {
+            resolve()
+          }
+        }), PRIORITY_SCANNING)
+      }
     }
 
-    console.log('finding stb done')
-    emit('SCAN-DONE', {})
+    // console.log('finding stb done')
+    // emit('SCAN-DONE', {})
   } catch (e) {
     console.error(e)
-  } finally {
-    periodicFetch()
   }
-
 }

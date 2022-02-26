@@ -19,9 +19,9 @@ const ccminerInstall = async (ssh: NodeSSH, client: Socket, stb: Stb) => {
 
         emitLog(id, INSTALL_LOG, `Installing ccminer`, false)
 
-        await installMiner(ssh, await ccminerFromConfig(workername === 'hostname' ? stb.hostname : workername), (log) => {
-            emitLog(id, INSTALL_LOG, log, false)
-        })
+        // await installMiner(ssh, await ccminerFromConfig(workername === 'hostname' ? stb.hostname : workername), (log) => {
+        //     emitLog(id, INSTALL_LOG, log, false)
+        // })
 
         emitLog(id, INSTALL_LOG, `ccminer installed`, false)
         return true

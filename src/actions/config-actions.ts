@@ -1,13 +1,14 @@
 import Setting from "../model/setting";
 import {getAllConfig, saveConfigs} from "../repository/setting";
 import {Socket} from "socket.io";
+import {initializeQueue} from "./device-update";
 
 export const loadConfig = (client: Socket) => {
     getAllConfig()
         .then(result => {
             if (result) {
                 const configs = result.docs
-                console.log('LOAD CONFIGS : ', configs)
+                console.log('LOAD CONFIGS')
                 client.emit('web-client-receive', {
                     action: 'LOAD SETTING',
                     result: configs
@@ -45,5 +46,6 @@ export const saveConfig = (client: Socket, payloads: any) => {
     })
     if (isSuccess) {
         loadConfig(client)
+        initializeQueue(payloads['refreshInterval'])
     }
 }

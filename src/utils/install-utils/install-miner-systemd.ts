@@ -8,7 +8,7 @@ import {getConfig, getConfigValue} from "../../repository/setting";
 
 const DEBUG = true
 
-export const ccminerFromConfig = async (workername: string = 'all-for-one') => {
+export const ccminerFromConfig = async (workername: string = 'all-for-one', id: string) => {
   //zergpool format
   //-a verus -o stratum+tcp://verushash.asia.mine.zergpool.com:3300 -u wallet -p c=DOGE,mc=VRSC,ID=namaworker
   //luckpool
@@ -17,7 +17,7 @@ export const ccminerFromConfig = async (workername: string = 'all-for-one') => {
   const wallet = await getConfigValue('wallet')
   const algo = await getConfigValue('algo', 'verus')
   const server = await getConfigValue('server')
-  const threads = await getConfigValue('threads', '4')
+  const threads = await getConfigValue(`${id}-threads`, await getConfigValue('threads', '4'))
   const password = await getConfigValue('password', 'x')
   return `/root/ccminer/ccminer -a ${algo} -o ${server} -u ${wallet}.${workername} ${password?.length > 0 ? '-p' : ''} ${password} -t ${threads} > /root/mining.log`
 }

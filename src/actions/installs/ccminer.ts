@@ -6,11 +6,14 @@ import {INSTALL_LOG} from "../const";
 import run from "../../utils/run";
 import Stb from "../../model/stb";
 import {getConfigValue} from "../../repository/setting";
+import connect from "../../utils/connect";
 
-const ccminerInstall = async (ssh: NodeSSH, client: Socket, stb: Stb) => {
+const ccminerInstall = async (client: Socket, stb: Stb) => {
     const { _id: id } = stb
     const workername = await getConfigValue('workername', 'all-for-one')
     try {
+        const ssh = await connect(stb.ip)
+
         await run(ssh, 'pkill ccminer')
         await run(ssh, 'pkill monit')
         await run(ssh, 'pkill pm2')
@@ -23,11 +26,13 @@ const ccminerInstall = async (ssh: NodeSSH, client: Socket, stb: Stb) => {
 
         emitLog(id, INSTALL_LOG, `Installing ccminer`, false)
 
-        await installMiner(ssh, await ccminerFromConfig(workername === 'hostname' ? stb.hostname : workername), (log) => {
+        await installMiner(ssh, await ccminerFromConfig(workername === 'hostname' ? stb.hostname : workername, id), (log) => {
             emitLog(id, INSTALL_LOG, log, false)
         })
 
         emitLog(id, INSTALL_LOG, `ccminer installed`, true)
+
+        //ssh.dispose()
         return true
     } catch (e) {
         emitLog(id, INSTALL_LOG, `ccminer install failed`, true)

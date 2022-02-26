@@ -19,20 +19,23 @@ export const getAllStb = (): Promise<PouchDB.Find.FindResponse<Stb>> => stbDb.fi
     fields: stbFields,
 })
 
+export const deleteStb = async (id: string) => {
+    try {
+        const doc = await stbDb.get(id);
+        await stbDb.remove(doc)
+        return true
+    } catch (e) {
+    }
+    return false
+}
+
 export const saveStb = (data: Stb) => {
-    stbDb.get(data.name)
-        .then(result => {
-            stbDb.put({
-                ...result,
-                ...data
-            }, { force: true })
-        })
-        .catch(e => {
-            if (e.status === 404) {
-                stbDb.put({
-                    ...data,
-                    _id: data.name
-                })
-            }
-        })
+    const _id = data._id || data.hostname//data.mac.join(', ') + '&&' + data.hostname
+    return stbDb.upsert(_id, (doc) => {
+        return {
+            ...doc,
+            ...data,
+            _id
+        }
+    })
 }
