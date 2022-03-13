@@ -1,5 +1,3 @@
-import {SetIntervalAsyncTimer} from 'set-interval-async/dynamic'
-
 import {getAllStb, getStb} from "../repository/stb";
 import {fetchSingleStb} from "../utils/get-stb-non-blocking.js";
 import {Socket} from "socket.io";
@@ -26,8 +24,6 @@ const sendDeviceUpdate = async (client: Socket) => {
         result: data.docs
     })
 }
-
-let intervalID: SetIntervalAsyncTimer = null
 
 export const initializeQueue = (forcedDelay: string = null) => {
     console.log('INITIATE PERIODIC FETCH')
