@@ -13,6 +13,16 @@ const single = async (id: string, client: Socket, action: string, payload: any) 
         const stb = await getStb(id)
         console.log(`PROCEEED ${action} done : `, stb)
         switch (action) {
+            case 'SHUTDOWN': {
+                add(new Promise<void>(async (resolve) => {
+                    try {
+                        const ssh = await connect(stb.ip)
+                        run(ssh, 'poweroff', true)
+                        //ssh.dispose()
+                    } catch (e) {}
+                    resolve()
+                }), PRIORITY_SETUP_CCMINER)
+            }
             case 'RESTART': {
                 add(new Promise<void>(async (resolve) => {
                     try {
