@@ -4,7 +4,9 @@ import { NodeSSH } from "node-ssh";
 
 const getHashrate = async (ssh: NodeSSH) => {
   try {
-    const active = await run(ssh, 'ps -C ccminer | grep ccminer')
+    const pid = await run(ssh, `pgrep ccminer`)
+    const ccminerRunning = pid && pid.length > 0 && !isNaN(parseInt(pid))
+
     const miningLog = await run(ssh, 'tail -n 5 /root/mining.log')
     const hashrateLog = miningLog.split('\n')
     const result = hashrateLog.slice().reverse().find((log) => {
@@ -22,13 +24,11 @@ const getHashrate = async (ssh: NodeSSH) => {
 
       const hashrate = replace(replace((raws[1] || ''), ' \x1B[32myes!\x1B[0m', ''), '[31mbooooo[0m', '')
 
-      const ccminerRunning = active && active.length > 0
-
       return {
         hashrate: ccminerRunning ? hashrate : 'n/a',
         diff,
         shares,
-        lastUpdate: ccminerRunning ? lastUpdate : null
+        lastUpdate: lastUpdate
       }
     }
   } catch (e) {
