@@ -7,6 +7,7 @@ PouchDB.plugin(PouchDBUpsert);
 
 export const stbDb = new PouchDB('stb')
 export const settingDb = new PouchDB('setting')
+export const logDb = new PouchDB('logs')
 
 export const stbFields = ['hostname', 'name',
   'mac', 'os',
@@ -18,5 +19,7 @@ export const stbFields = ['hostname', 'name',
   'minerScript']
 
 export const settingFields = ['_id', 'name', 'value', 'lastUpdate']
+
+export const logFields = ['ip', 'log', 'timestamp']
 
 export default stbDb

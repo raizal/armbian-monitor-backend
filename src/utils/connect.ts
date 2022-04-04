@@ -1,4 +1,4 @@
-import {NodeSSH} from "node-ssh";
+import {CustomNodeSSH as NodeSSH} from "./CustomNodeSSH"
 
 const connections: Map<string, NodeSSH> = new Map<string, NodeSSH>()
 
@@ -12,17 +12,50 @@ const connect = async (ip: string, forceNew: boolean = false) => {
       connections.delete(ip)
     }
   }
-  const ssh = new NodeSSH()
-  await ssh.connect({
-    host: ip,
-    username: process.env.STB_USERNAME,
-    password: process.env.STB_PASSWORD,
-    readyTimeout: 2000,
-    keepaliveCountMax: 300,
-    keepaliveInterval: 10000
-  })
-  connections.set(ip, ssh)
-  return ssh
+  const username = process.env.STB_USERNAME
+  const passwordRaw = process.env.STB_PASSWORD
+
+  try {
+    // if password is eval-able, it means it contains multi password
+    const passwords = eval(passwordRaw)
+
+    for (const password of passwords) {
+      try {
+        const ssh = new NodeSSH()
+        await ssh.connect({
+          host: ip,
+          username,
+          password,
+          readyTimeout: 2000,
+          keepaliveCountMax: 300,
+          keepaliveInterval: 10000
+        })
+        if (ssh.isConnected()) {
+          connections.set(ip, ssh)
+          return ssh
+        }
+      } catch (e) {
+      }
+    }
+  } catch (e) {
+    // if eval throw exception, it means the password is string
+    try {
+      const ssh = new NodeSSH()
+      await ssh.connect({
+        host: ip,
+        username,
+        password: passwordRaw,
+        readyTimeout: 2000,
+        keepaliveCountMax: 300,
+        keepaliveInterval: 10000
+      })
+      if (ssh.isConnected()) {
+        connections.set(ip, ssh)
+        return ssh
+      }
+    } catch (e) {}
+  }
+  return null
 }
 
 

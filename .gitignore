@@ -135,3 +135,5 @@ idea/
 stb/
 configs/
 setting/
+
+armbian-monitor**

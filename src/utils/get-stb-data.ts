@@ -5,15 +5,16 @@ import getNetworkDeviceStatus from "./get-net-devices.js";
 import fetchTemp from "./get-device-temp.js";
 import getOS from "./get-osname.js";
 import getHashrate from "./get-hashrate.js";
-import {getMinerStatus} from "./install-utils/install-miner.js";
+import {getMinerStatus} from "./install-utils/install-miner-systemd.js";
 import {isSkywireExist} from "./install-utils/install-skywire.js";
 import Stb from "../model/stb";
 import {NodeSSH} from "node-ssh";
 import getMinerScript from "./get-miner-script";
 import getCpuLoad from "./get-cpu-load";
 import getIp from "./get-ip";
+import {CustomNodeSSH} from "./CustomNodeSSH";
 
-const getMac = async (ssh: NodeSSH, netDev: string[]) => {
+const getMac = async (ssh: CustomNodeSSH, netDev: string[]) => {
   const macRequestPromises: Array<Promise<void>> = []
 
   const macAddresses: Array<string> = []
@@ -29,7 +30,7 @@ const getMac = async (ssh: NodeSSH, netDev: string[]) => {
   return macAddresses
 }
 
-const getSTBData = async (ssh: NodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
+const getSTBData = async (ssh: CustomNodeSSH, netDevice = 'wlan0'): Promise<Stb>=> {
   try {
     const hostname = await getHostname(ssh)
     const os = await getOS(ssh)

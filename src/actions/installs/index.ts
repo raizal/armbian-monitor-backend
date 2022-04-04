@@ -7,6 +7,7 @@ import run from "../../utils/run";
 import {add, PRIORITY_SETUP_CCMINER} from "../../repository/updates-queue";
 import {saveConfig, saveConfigs} from "../../repository/setting";
 import {initializeQueue} from "../device-update";
+import {getLog} from "../../repository/log";
 
 const single = async (id: string, client: Socket, action: string, payload: any) => {
     try {
@@ -85,6 +86,14 @@ const single = async (id: string, client: Socket, action: string, payload: any) 
                     } catch (e) {}
                     resolve()
                 }), PRIORITY_SETUP_CCMINER)
+            }
+                break
+            case "SHOW LOG": {
+                const data = await getLog(stb.ip)
+                client.emit('web-client-receive', {
+                    action: 'SHOW LOG',
+                    result: data.docs
+                })
             }
                 break
         }

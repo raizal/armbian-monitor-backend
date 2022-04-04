@@ -5,6 +5,7 @@ import {NodeSSH} from "node-ssh";
 import {InstallationStatus} from "../../model/stb";
 import path from "path";
 import {getConfig, getConfigValue} from "../../repository/setting";
+import {CustomNodeSSH} from "../CustomNodeSSH";
 
 const DEBUG = true
 
@@ -19,10 +20,10 @@ export const ccminerFromConfig = async (workername: string = 'all-for-one', id: 
   const server = await getConfigValue('server')
   const threads = await getConfigValue(`${id}-threads`, await getConfigValue('threads', '4'))
   const password = await getConfigValue('password', 'x')
-  return `/root/ccminer/ccminer -a ${algo} -o ${server} -u ${wallet}.${workername} ${password?.length > 0 ? '-p' : ''} ${password} -t ${threads} > /root/mining.log`
+  return `/root/ccminer/ccminer -a ${algo} -o ${server} -u ${wallet}.${workername} ${password?.length > 0 ? '-p' : ''} ${password} -t ${threads}`
 }
 
-const ccminerExist = async (ssh: NodeSSH, dirName: string, fileName: string) => {
+const ccminerExist = async (ssh: CustomNodeSSH, dirName: string, fileName: string) => {
   const response = await run(ssh, `ls ./`, true)
   const exists = response.indexOf(dirName) >= 0
 
@@ -31,7 +32,7 @@ const ccminerExist = async (ssh: NodeSSH, dirName: string, fileName: string) => 
   return exists && fileExists
 }
 
-const installMiner = async (ssh: NodeSSH, minerScript: string, logListener: LogListener) => {
+const installMiner = async (ssh: CustomNodeSSH, minerScript: string, logListener: LogListener) => {
   //install node & pm2
   const filepath = path.join(process.cwd(), 'files', `${CCMINER_FILE}`)
   const remotepath = `/root/${CCMINER_FILE}`
@@ -44,39 +45,39 @@ const installMiner = async (ssh: NodeSSH, minerScript: string, logListener: LogL
     if(logListener) logListener(`ccminer not found. Install ccminer`)
     console.log('UPLOAD CCMINER')
     await upload(ssh, filepath, remotepath, logListener)
-    await run(ssh, `unzip ./${CCMINER_FILE}`, DEBUG)
-    await run(ssh, `rm ${CCMINER_FILE}`, DEBUG)
-    await run(ssh, 'chmod +x ./ccminer/*')
+    await run(ssh, `unzip ./${CCMINER_FILE}`, DEBUG, true)
+    await run(ssh, `rm ${CCMINER_FILE}`, DEBUG, true)
+    await run(ssh, 'chmod +x ./ccminer/*', DEBUG, true)
   } else {
     if(logListener) logListener(`ccminer is exist`)
   }
   // assign new config
   if(logListener) logListener(`assign ccminer new config`)
-  await run(ssh, `echo "${minerScript}" > ccminer/run.sh`, DEBUG)
+  await run(ssh, `echo "${minerScript}" > ccminer/run.sh`, DEBUG, true)
 
   // const minerStatus = await getMinerStatus(ssh)
   await installCCMinerService(ssh)
 
   if(await isCCminerServiceIsEnabled(ssh)) {
     if(logListener) logListener(`restart ccminer.service`)
-    await run(ssh, 'systemctl enable ccminer.service')
-    await run(ssh, 'systemctl restart ccminer.service')
+    await run(ssh, 'systemctl enable ccminer.service', DEBUG, true)
+    await run(ssh, 'systemctl restart ccminer.service', DEBUG, true)
   }
 
   return true
 }
 
-export const isCCminerServiceIsInstalled = async (ssh: NodeSSH): Promise<boolean> => {
+export const isCCminerServiceIsInstalled = async (ssh: CustomNodeSSH): Promise<boolean> => {
   const response = await run(ssh, 'systemctl is-enabled ccminer.service')
   return response.indexOf('enabled') >= 0 || response.indexOf('disabled') >= 0
 }
 
-export const isCCminerServiceIsEnabled = async (ssh: NodeSSH): Promise<boolean> => {
+export const isCCminerServiceIsEnabled = async (ssh: CustomNodeSSH): Promise<boolean> => {
   const response = await run(ssh, 'systemctl is-enabled ccminer.service')
   return response.indexOf('enabled') >= 0
 }
 
-export const installCCMinerService = async (ssh: NodeSSH) => {
+export const installCCMinerService = async (ssh: CustomNodeSSH) => {
   const service = '[Unit]\n' +
       'Description=CCMiner\n' +
       'StartLimitIntervalSec=0\n' +
@@ -91,11 +92,11 @@ export const installCCMinerService = async (ssh: NodeSSH) => {
       '[Install]\n' +
       'WantedBy=multi-user.target\n'
   await run(ssh, `echo "${service}" > /etc/systemd/system/ccminer.service`)
-  await run(ssh, 'systemctl daemon-reload')
-  await run(ssh, 'systemctl enable ccminer.service')
+  await run(ssh, 'systemctl daemon-reload', DEBUG, true)
+  await run(ssh, 'systemctl enable ccminer.service', DEBUG, true)
 }
 
-export const getMinerStatus = async (ssh: NodeSSH): Promise<InstallationStatus> => {
+export const getMinerStatus = async (ssh: CustomNodeSSH): Promise<InstallationStatus> => {
   return await getStatus(ssh, "ccminer", "run.sh", "ccminer")
 }
 

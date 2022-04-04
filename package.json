@@ -17,8 +17,9 @@
     "dev": "tsc-watch --onSuccess \"pm2 restart all\"",
     "lint": "eslint . --ext .ts",
     "prod": "node built",
-    "bundle": "yarn install && tsc && yarn install --production && node_modules/.bin/caxa --exclude \"./.git**\" \".idea**\" \"./setting**\" \"./stb**\" \"./src**\" \"*.lock\" \"files**\" \".idea**\" \"./node_modules/caxa**\" \"./node_modules/rx**\" \"./node_modules/date**\" \"./node_modules/ts**\" \"./node_modules/eslint**\" \"./node_modules/@types**\" \"./node_modules/typescript**\" --input . --output \"./armbian-monitor\" -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/dist\" && yarn install",
-    "bundle-win": "yarn install && tsc && yarn install --production && node_modules/.bin/caxa --exclude \"./.git**\" \".idea**\" \"./setting**\" \"./stb**\" \"./src**\" \"*.lock\" \"files**\" \".idea**\" \"./node_modules/caxa**\" \"./node_modules/rx**\" \"./node_modules/date**\" \"./node_modules/ts**\" \"./node_modules/eslint**\" \"./node_modules/@types**\" \"./node_modules/typescript**\" --input . --output \"./armbian-monitor.exe\" -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/dist\" && yarn install"
+    "bundle": "yarn install && tsc && yarn install --production && node_modules/.bin/caxa --exclude \"./.git**\" \".idea**\" \"./setting**\" \"./logs**\" \"armbian-monitor**\" \"./stb**\" \"./src**\" \"*.lock\" \"files**\" \".idea**\" \"./node_modules/caxa**\" \"./node_modules/rx**\" \"./node_modules/date**\" \"./node_modules/ts**\" \"./node_modules/eslint**\" \"./node_modules/@types**\" \"./node_modules/typescript**\" --input . --output \"./armbian-monitor\" -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/dist\"",
+    "bundle-win": "yarn install && tsc && yarn install --production && node_modules/.bin/caxa --exclude \"./.git**\" \".idea**\" \"./setting**\" \"./logs**\" \"armbian-monitor**\" \"./stb**\" \"./src**\" \"*.lock\" \"files**\" \".idea**\" \"./node_modules/caxa**\" \"./node_modules/rx**\" \"./node_modules/date**\" \"./node_modules/ts**\" \"./node_modules/eslint**\" \"./node_modules/@types**\" \"./node_modules/typescript**\" --input . --output \"./armbian-monitor.exe\" -- \"{{caxa}}/node_modules/.bin/node\" \"{{caxa}}/dist\"",
+    "deploy": "pm2 stop all && yarn bundle-win && docker compose up"
   },
   "author": "Raizal I.N. Pregnanta",
   "license": "MIT",

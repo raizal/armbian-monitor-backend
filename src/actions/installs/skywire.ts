@@ -6,8 +6,9 @@ import {INSTALL_LOG} from "../const";
 import run from "../../utils/run";
 import Stb from "../../model/stb";
 import {getConfigValue} from "../../repository/setting";
+import {CustomNodeSSH} from "../../utils/CustomNodeSSH";
 
-const ccminerInstall = async (ssh: NodeSSH, client: Socket, stb: Stb) => {
+const ccminerInstall = async (ssh: CustomNodeSSH, client: Socket, stb: Stb) => {
     const { _id: id } = stb
     const workername = await getConfigValue('workername', 'all-for-one')
     try {

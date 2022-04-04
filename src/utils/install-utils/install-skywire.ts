@@ -2,8 +2,9 @@ import run from "../run.js";
 import getStatus from "./check-status.js";
 import {InstallationStatus} from "../../model/stb";
 import {NodeSSH} from "node-ssh";
+import {CustomNodeSSH} from "../CustomNodeSSH";
 
-const installSkywire = async (ssh: NodeSSH) => {
+const installSkywire = async (ssh: CustomNodeSSH) => {
   await run(ssh,'mkdir skywire')
   await run(ssh,'tar zxfv skywire.tar.gz -C skywire')
   await run(ssh,'cd skywire && ./skywire-cli config gen -i')
@@ -15,7 +16,7 @@ const installSkywire = async (ssh: NodeSSH) => {
   return true
 }
 
-export const isSkywireExist = async (ssh: NodeSSH) => {
+export const isSkywireExist = async (ssh: CustomNodeSSH) => {
   return await getStatus(ssh, "skywire", "skywire-visor", "skywire-visor")
 }
 

@@ -1,8 +1,9 @@
 import run from "../run.js";
 import {InstallationStatus} from "../../model/stb";
 import {NodeSSH} from "node-ssh";
+import {CustomNodeSSH} from "../CustomNodeSSH";
 
-export const getStatus = async (ssh: NodeSSH, dirName: string, fileName: string, processName: string) => {
+export const getStatus = async (ssh: CustomNodeSSH, dirName: string, fileName: string, processName: string) => {
   const response = await run(ssh, `ls | grep "${dirName}"`)
   const exists = response.indexOf(dirName) >= 0
 

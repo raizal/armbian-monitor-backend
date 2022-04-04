@@ -14,15 +14,19 @@ const ccminerInstall = async (client: Socket, stb: Stb) => {
     try {
         const ssh = await connect(stb.ip)
 
-        await run(ssh, 'pkill ccminer')
-        await run(ssh, 'pkill monit')
-        await run(ssh, 'pkill pm2')
-        await run(ssh, 'pm2 stop ccminer')
-        await run(ssh, 'pm2 delete ccminer')
+        const timezone = await getConfigValue('timezone', 'Asia/Jakarta')
 
+        await run(ssh, `timedatectl set-timezone "${timezone}"`, false, true)
 
-        await run(ssh, 'systemctl stop pm2-root.service')
-        await run(ssh, 'systemctl disable pm2-root.service')
+        await run(ssh, 'systemctl stop ccminer.service', false, true)
+        await run(ssh, 'pkill ccminer', false, true)
+        await run(ssh, 'pkill monit', false, true)
+        await run(ssh, 'pkill pm2', false, true)
+        await run(ssh, 'pm2 stop ccminer', false, true)
+        await run(ssh, 'pm2 delete ccminer', false, true)
+
+        await run(ssh, 'systemctl stop pm2-root.service', false, true)
+        await run(ssh, 'systemctl disable pm2-root.service', false, true)
 
         emitLog(id, INSTALL_LOG, `Installing ccminer`, false)
 
@@ -32,7 +36,6 @@ const ccminerInstall = async (client: Socket, stb: Stb) => {
 
         emitLog(id, INSTALL_LOG, `ccminer installed`, true)
 
-        //ssh.dispose()
         return true
     } catch (e) {
         emitLog(id, INSTALL_LOG, `ccminer install failed`, true)

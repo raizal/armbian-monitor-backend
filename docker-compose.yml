@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  arm64:
+    image: 'arm64v8/node'
+    ports:
+      - "81:80"
+    volumes:
+      - .:/source
+      - arm64bin:/deploy/bin
+    working_dir: /source
+    command: sh -c "yarn global add typescript && yarn bundle && cp armbian-monitor /deploy/bin && rm armbian-monitor"
+
+  amd64:
+    image: 'amd64/node'
+    ports:
+      - "82:80"
+    volumes:
+      - .:/source
+      - x64bin:/deploy/bin
+    working_dir: /source
+    command: sh -c "yarn global add typescript && yarn bundle && cp armbian-monitor /deploy/bin && rm armbian-monitor"
+
+volumes:
+  arm64bin:
+    external: true
+  x64bin:
+    external: true

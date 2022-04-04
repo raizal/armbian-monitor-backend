@@ -10,6 +10,12 @@ import {resume} from "./repository/updates-queue";
 import connect from "./utils/connect";
 import run from "./utils/run";
 import getMinerScript from "./utils/get-miner-script";
+import {CustomNodeSSH} from "./utils/CustomNodeSSH";
+import FileLoggingHandler from "./utils/FileLoggingHandler";
+
+CustomNodeSSH.log = FileLoggingHandler
+
+const port = process.env.SERVER_PORT || 80
 
 //Error handler
 process.on('uncaughtException', (exception) => {
@@ -50,7 +56,7 @@ io.on("connection", (socket: Socket) => {
 
 });
 
-httpServer.listen(80);
+httpServer.listen(port);
 initializeQueue()
 //
 // const playground = async () => {

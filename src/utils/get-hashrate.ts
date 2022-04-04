@@ -1,28 +1,30 @@
 import run from "./run.js";
 import { isArray, replace } from 'lodash'
 import { NodeSSH } from "node-ssh";
+import {CustomNodeSSH} from "./CustomNodeSSH";
 
-const getHashrate = async (ssh: NodeSSH) => {
+const getHashrate = async (ssh: CustomNodeSSH) => {
   try {
     const pid = await run(ssh, `pgrep ccminer`)
     const ccminerRunning = pid && pid.length > 0 && !isNaN(parseInt(pid))
 
-    const miningLog = await run(ssh, 'tail -n 5 /root/mining.log')
+    const miningLog = await run(ssh, 'journalctl -u ccminer.service -n 5 --no-pager')
     const hashrateLog = miningLog.split('\n')
     const result = hashrateLog.slice().reverse().find((log) => {
-      const logRaws = log.split(', ')
+      const logRaws = log.split(']: ')[1].split(', ')
       return (isArray(logRaws) && logRaws.length === 2 && logRaws[0].indexOf(' (diff ') >= 0)
     })
     if (result) {
-      const lastUpdateMatches = result.match(/\[(.*?)\]/);
+      const log = result.split(']: ')[1]
+      const lastUpdateMatches = log.match(/\[(.*?)\]/);
       const lastUpdate = lastUpdateMatches.length > 1 ? lastUpdateMatches[1] : null
-      const raws = result.split('), ')
+      const raws = log.split('), ')
       const rawsDiffShares = raws[0].split(' (')
 
       const shares = rawsDiffShares[0].replace('accepted: ', '').split(' ')[2]
       const diff = rawsDiffShares[1].replace('diff ', '')
 
-      const hashrate = replace(replace((raws[1] || ''), ' \x1B[32myes!\x1B[0m', ''), '[31mbooooo[0m', '')
+      const hashrate = replace(replace((raws[1] || ''), ' yes!', ''), ' booooo', '')
 
       return {
         hashrate: ccminerRunning ? hashrate : 'n/a',
