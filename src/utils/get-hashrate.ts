@@ -9,6 +9,9 @@ const getHashrate = async (ssh: CustomNodeSSH) => {
     const ccminerRunning = pid && pid.length > 0 && !isNaN(parseInt(pid))
 
     const miningLog = await run(ssh, 'journalctl -u ccminer.service -n 5 --no-pager')
+
+    if (!miningLog) throw Error(`empty mining log`)
+
     const hashrateLog = miningLog.split('\n')
     const result = hashrateLog.slice().reverse().find((log) => {
       const logRaws = log.split(']: ')[1].split(', ')

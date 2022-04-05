@@ -15,36 +15,22 @@ const connect = async (ip: string, forceNew: boolean = false) => {
   const username = process.env.STB_USERNAME
   const passwordRaw = process.env.STB_PASSWORD
 
+  const passwords: string[] = []
+
   try {
     // if password is eval-able, it means it contains multi password
-    const passwords = eval(passwordRaw)
-
-    for (const password of passwords) {
-      try {
-        const ssh = new NodeSSH()
-        await ssh.connect({
-          host: ip,
-          username,
-          password,
-          readyTimeout: 2000,
-          keepaliveCountMax: 300,
-          keepaliveInterval: 10000
-        })
-        if (ssh.isConnected()) {
-          connections.set(ip, ssh)
-          return ssh
-        }
-      } catch (e) {
-      }
-    }
+    const passInArray = eval(passwordRaw)
+    passwords.push(...passInArray)
   } catch (e) {
-    // if eval throw exception, it means the password is string
+    passwords.push(passwordRaw)
+  }
+  for (const password of passwords) {
     try {
       const ssh = new NodeSSH()
       await ssh.connect({
         host: ip,
         username,
-        password: passwordRaw,
+        password,
         readyTimeout: 2000,
         keepaliveCountMax: 300,
         keepaliveInterval: 10000
@@ -53,8 +39,10 @@ const connect = async (ip: string, forceNew: boolean = false) => {
         connections.set(ip, ssh)
         return ssh
       }
-    } catch (e) {}
+    } catch (e) {
+    }
   }
+
   return null
 }
 
