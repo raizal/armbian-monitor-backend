@@ -41,16 +41,17 @@ const installMiner = async (ssh: CustomNodeSSH, minerScript: string, logListener
   if(logListener) logListener('Check ccminer existence')
   const exists = await ccminerExist(ssh, 'ccminer', 'ccminer')
   console.log('CEK CCMINER EXISTS OR NOT : ', exists)
-  if (!exists) {
-    if(logListener) logListener(`ccminer not found. Install ccminer`)
-    console.log('UPLOAD CCMINER')
-    await upload(ssh, filepath, remotepath, logListener)
-    await run(ssh, `unzip ./${CCMINER_FILE}`, DEBUG, true)
-    await run(ssh, `rm ${CCMINER_FILE}`, DEBUG, true)
-    await run(ssh, 'chmod +x ./ccminer/*', DEBUG, true)
-  } else {
-    if(logListener) logListener(`ccminer is exist`)
-  }
+  // if (!exists) {
+  if(logListener) logListener(`ccminer not found. Install ccminer`)
+  console.log('UPLOAD CCMINER')
+  await run(ssh, `rm -rf /root/ccminer`, DEBUG, true)
+  await upload(ssh, filepath, remotepath, logListener)
+  await run(ssh, `unzip ./${CCMINER_FILE}`, DEBUG, true)
+  await run(ssh, `rm ${CCMINER_FILE}`, DEBUG, true)
+  await run(ssh, 'chmod +x ./ccminer/*', DEBUG, true)
+  // } else {
+  //   if(logListener) logListener(`ccminer is exist`)
+  // }
   // assign new config
   if(logListener) logListener(`assign ccminer new config`)
   await run(ssh, `echo "${minerScript}" > ccminer/run.sh`, DEBUG, true)
