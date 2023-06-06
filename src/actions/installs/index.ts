@@ -24,6 +24,7 @@ const single = async (id: string, client: Socket, action: string, payload: any) 
                     resolve()
                 }), PRIORITY_SETUP_CCMINER)
             }
+            break
             case 'RESTART': {
                 add(new Promise<void>(async (resolve) => {
                     try {
@@ -34,7 +35,7 @@ const single = async (id: string, client: Socket, action: string, payload: any) 
                     resolve()
                 }), PRIORITY_SETUP_CCMINER)
             }
-                break
+            break
             case 'CHANGE & APPLY CONFIG': {
                 const {
                     config
@@ -68,23 +69,27 @@ const single = async (id: string, client: Socket, action: string, payload: any) 
                     await ccminerInstall(client, updated)
                     initializeQueue()
                     //ssh.dispose()
-                } catch (e) {
-                }
+                } catch (e) {}
 
             }
+            break
             case "SETUP CCMINER": {
                 add(ccminerInstall(client, stb), PRIORITY_SETUP_CCMINER)
             }
-                break
+            break
             case "STOP MINER": {
-                add(new Promise<void>(async (resolve) => {
-                    try {
-                        const ssh = await connect(stb.ip)
-                        await run(ssh, 'systemctl stop ccminer.service', true)
-                        await run(ssh, 'pkill ccminer', true)
-                        //ssh.dispose()
-                    } catch (e) {}
-                    resolve()
+                add(new Promise<void>((resolve) => {
+                    const doRun = async () => {
+                        try {
+                            const ssh = await connect(stb.ip)
+                            await run(ssh, 'systemctl stop ccminer.service', true)
+                            await run(ssh, 'pkill ccminer', true)
+                            //ssh.dispose()
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+                    doRun().then(() => resolve());
                 }), PRIORITY_SETUP_CCMINER)
             }
                 break
