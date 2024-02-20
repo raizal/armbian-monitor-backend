@@ -12,6 +12,7 @@ const connect = async (ip: string, forceNew: boolean = false) => {
       connections.delete(ip)
     }
   }
+
   const username = process.env.STB_USERNAME
   const passwordRaw = process.env.STB_PASSWORD
 
@@ -31,7 +32,7 @@ const connect = async (ip: string, forceNew: boolean = false) => {
         host: ip,
         username,
         password,
-        readyTimeout: 2000,
+        readyTimeout: 5000,
         keepaliveCountMax: 300,
         keepaliveInterval: 10000
       })
@@ -43,7 +44,8 @@ const connect = async (ip: string, forceNew: boolean = false) => {
     }
   }
 
-  return null
+  connections.delete(ip)
+  throw Error(`Can't connect to ${ip}`)
 }
 
 

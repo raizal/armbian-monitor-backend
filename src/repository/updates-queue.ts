@@ -92,18 +92,15 @@ const worker = async (ip: string, _id: string): Promise<void> => {
                     try {
                         emit('UPDATE SINGLE', result)
                     } catch (e) {
-                        console.log(e)
+                        console.log(e.message)
                     }
-                } else {
-                    getStb(_id)
-                        .then(result => {
-                            emit('UPDATE SINGLE', {
-                                ...result,
-                                lastUpdate: 0,
-                                lastRequest: 0
-                            })
-                        })
                 }
+                // else {
+                //     getStb(_id)
+                //         .then(result => {
+                //             emit('UPDATE SINGLE', result)
+                //         })
+                // }
             })
             .finally(() => {
                 resolve()

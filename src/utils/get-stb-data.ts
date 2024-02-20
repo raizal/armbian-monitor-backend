@@ -69,7 +69,6 @@ const getSTBData = async (ssh: CustomNodeSSH, netDevice = 'wlan0'): Promise<Stb>
       cpuLoad,
       minerScript,
     }
-
     return result
   } catch (e) {
     console.error(e)

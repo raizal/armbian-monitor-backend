@@ -24,8 +24,7 @@ export const fetchSingleStb = async ({
       }
     }
   } catch (e) {
-    console.error(`FETCH STB ERROR ${ip} : `, e.level)
-    if (e.level !== 'client-timeout') console.error(`${ip} : `, e)
+    console.error(`ERROR ${ip} : `, e.message)
   }
   return null
 }

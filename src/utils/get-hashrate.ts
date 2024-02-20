@@ -1,4 +1,5 @@
 import run from "./run.js";
+// @ts-ignore
 import { isArray, replace } from 'lodash'
 import { NodeSSH } from "node-ssh";
 import {CustomNodeSSH} from "./CustomNodeSSH";
@@ -10,9 +11,9 @@ const getHashrate = async (ssh: CustomNodeSSH) => {
 
     const miningLog = await run(ssh, 'journalctl -u ccminer.service -n 5 --no-pager')
 
-    if (!miningLog) throw Error(`empty mining log`)
+    if (!miningLog || miningLog.length === 0) throw Error(`empty mining log`)
 
-    const hashrateLog = miningLog.split('\n')
+    const hashrateLog = (miningLog || '').split('\n')
     const result = hashrateLog.slice().reverse().find((log) => {
       const logRaws = log.split(']: ')[1].split(', ')
       return (isArray(logRaws) && logRaws.length === 2 && logRaws[0].indexOf(' (diff ') >= 0)
