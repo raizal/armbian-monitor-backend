@@ -31,8 +31,8 @@ export const initializeQueue = (forcedDelay: string = null) => {
         .then(async (value: string) => {
             // await stopPeriodicFetch()
             const delay = parseInt(forcedDelay || value) * 1000
-            console.log('ASSIGN IP')
-            console.log(`SET DELAY TO : ${delay} ms`)
+            // console.log('ASSIGN IP')
+            // console.log(`SET DELAY TO : ${delay} ms`)
             const data = await getAllStb()
             const ips = data.docs.map(({ip, _id}) => ({ip, _id}))
             setQueueDelay(delay)

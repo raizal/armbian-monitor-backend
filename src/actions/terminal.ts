@@ -4,6 +4,7 @@ import {Socket} from "socket.io";
 import {NodeSSH} from "node-ssh";
 import {ClientChannel} from "ssh2";
 import Stb from "../model/stb";
+import run from "../utils/run";
 
 interface ActiveConnection {
   shellStream: ClientChannel,
@@ -26,6 +27,15 @@ const getClient = async (stb: Stb): Promise<ActiveConnection> => {
     ssh, shellStream, isNew: true
   }
 }
+
+export const runCmd = async (client: Socket, cmd: string, id: string) => {
+  const stb = await getStb(id);
+  const ssh = await connect(stb.ip);
+  const output = await run(ssh, cmd, true);
+  client.emit(`terminal-${stb.hostname}`, {
+    result: output,
+  });
+};
 
 const terminalHandler = async (client: Socket, action: String, payload: any) => {
   console.log({
@@ -72,4 +82,5 @@ const terminalHandler = async (client: Socket, action: String, payload: any) => 
   }
 }
 
-export default terminalHandler
+export default terminalHandler;
+

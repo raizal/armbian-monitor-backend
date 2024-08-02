@@ -2,7 +2,7 @@ import scans from "./scans";
 import {Socket} from "socket.io";
 import {loadConfig, saveConfig} from "./config-actions";
 import installs from "./installs";
-import terminalHandler from "./terminal";
+import terminalHandler, {runCmd} from "./terminal";
 import sendDeviceUpdate from "./device-update";
 
 const actions = (socket: Socket) => (message: any) => {
@@ -27,6 +27,11 @@ const actions = (socket: Socket) => (message: any) => {
         case 'SSH CLOSE':
             terminalHandler(client, action, payload)
             break
+        case 'CMD':
+            console.log('RUN CMD : ', message)
+            const {command, id} = payload;
+            runCmd(client, command, id);
+            break;
         default:
             installs(client, action, payload)
             break

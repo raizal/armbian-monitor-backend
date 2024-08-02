@@ -34,7 +34,7 @@ export default async () => {
       }
     }
 
-    // console.log('finding stb done')
+    console.log('finding stb done')
     // emit('SCAN-DONE', {})
   } catch (e) {
     console.error(e)
